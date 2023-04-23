@@ -41,11 +41,11 @@ async def hello(interaction: discord.Integration):
 )
 async def map(interaction: discord.Integration, latitude1: float, longitude1: float, latitude2: float, longitude2: float):
     if latitude1 < -90 or latitude1 > 90 or latitude2 < -90 or latitude2 > 90:
-        await interaction.response.send_message("Invalid latitude value. Latitude must be between -90 and 90 degrees.")
+        await interaction.response.send_message("Invalid latitude value. Latitude must be between -90 and 90 degrees.", ephemeral=True)
         return
 
     if longitude1 < -180 or longitude1 > 180 or longitude2 < -180 or longitude2 > 180:
-        await interaction.response.send_message("Invalid longitude value. Longitude must be between -180 and 180 degrees.")
+        await interaction.response.send_message("Invalid longitude value. Longitude must be between -180 and 180 degrees.", ephemeral=True)
         return
 
     map_html_file = routes.get_html_map(latitude1, longitude1, latitude2, longitude2)
