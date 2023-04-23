@@ -5,4 +5,6 @@
 ```
 discord.py
 python-dotenv
+openrouteservice
+folium
 ```
