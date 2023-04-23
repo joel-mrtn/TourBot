@@ -1,11 +1,7 @@
-import os
+import config
 
 import openrouteservice
 import folium
-from dotenv import load_dotenv
-
-load_dotenv()
-ORS_KEY = os.getenv('ORS_KEY')
 
 lon1 = 8.673921
 lat1 = 50.110121
@@ -14,7 +10,7 @@ lon2 = 8.650596
 lat2 = 49.878321
 
 # Set up the OpenRouteService client and request a route between two coordinates
-client = openrouteservice.Client(key=ORS_KEY)
+client = openrouteservice.Client(key=config.ORS_KEY)
 coords = ((lon1, lat1), (lon2, lat2))
 routes = client.directions(coordinates=coords, profile='cycling-regular', format='geojson')
 

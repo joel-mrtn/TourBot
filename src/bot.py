@@ -1,13 +1,7 @@
-import os
+import config
 
 import discord
 from discord import app_commands
-from dotenv import load_dotenv
-
-
-load_dotenv()
-DC_TOKEN = os.getenv('DC_TOKEN')
-DC_GUILD = discord.Object(id=os.getenv('DC_GUILD'))
 
 
 class BotClient(discord.Client):
@@ -17,8 +11,8 @@ class BotClient(discord.Client):
 
     # By specifically naming the guild, the commands are updated faster on the server.
     async def setup_hook(self):
-        self.tree.copy_global_to(guild=DC_GUILD)
-        await self.tree.sync(guild=DC_GUILD)
+        self.tree.copy_global_to(guild=config.DC_GUILD)
+        await self.tree.sync(guild=config.DC_GUILD)
 
 
 intents = discord.Intents.default()
@@ -57,4 +51,4 @@ async def map(interaction: discord.Integration, latitude: float, longitude: floa
     await interaction.response.send_message(f'The coordinates are {latitude}, {longitude}')
 
 
-client.run(DC_TOKEN)
+client.run(config.DC_TOKEN)
