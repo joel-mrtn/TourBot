@@ -1,5 +1,7 @@
 import config
 
+import io
+from PIL import Image
 import openrouteservice
 import folium
 
@@ -15,7 +17,7 @@ coords = ((lon1, lat1), (lon2, lat2))
 routes = client.directions(coordinates=coords, profile='cycling-regular', format='geojson')
 
 # Create a map centered on the starting point and add the generated route
-map = folium.Map(location=[lat1, lon1], zoom_start=13)
+map = folium.Map(location=[lat1, lon1], zoom_start=13, zoom_control=False)
 route_layer = folium.GeoJson(routes, name='route')
 route_layer.add_to(map)
 
@@ -23,5 +25,10 @@ route_layer.add_to(map)
 folium.Marker([lat1, lon1], popup='Start').add_to(map)
 folium.Marker([lat2, lon2], popup='End').add_to(map)
 
-# Save the map as an HTML file
+# Generate an image
+img_data = map._to_png(1)
+img = Image.open(io.BytesIO(img_data))
+img.save('image.png')
+
+# Generate a map
 map.save('route_map.html')
