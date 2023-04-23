@@ -1,7 +1,9 @@
 import config
+import routes
 
 import discord
 from discord import app_commands
+from PIL import Image
 
 
 class BotClient(discord.Client):
@@ -27,28 +29,28 @@ async def on_ready():
 
 @client.tree.command(description='Get a nice greeting from the bot')
 async def hello(interaction: discord.Integration):
-    await interaction.response.send_message(f'Hey {interaction.user.mention}! Nice to see you.')
+    await interaction.response.send_message(content=f'Hey {interaction.user.mention}! Nice to see you.', ephemeral=True)
 
 
-@client.tree.command(description='Displays the location of a point in a map')
+@client.tree.command(description='Generate a HTML file with a route which you can open in your browser')
 @app_commands.describe(
-    latitude='The latitude of the coordinate',
-    longitude='The longitude of the coordinate',
+    latitude1='The latitude of the first coordinate',
+    longitude1='The longitude of the first coordinate',
+    latitude2='The latitude of the seccond coordinate',
+    longitude2='The longitude of the seccond coordinate',
 )
-async def map(interaction: discord.Integration, latitude: float, longitude: float):
-    if latitude < -90 or latitude > 90:
+async def map(interaction: discord.Integration, latitude1: float, longitude1: float, latitude2: float, longitude2: float):
+    if latitude1 < -90 or latitude1 > 90 or latitude2 < -90 or latitude2 > 90:
         await interaction.response.send_message("Invalid latitude value. Latitude must be between -90 and 90 degrees.")
         return
 
-    if longitude < -180 or longitude > 180:
+    if longitude1 < -180 or longitude1 > 180 or longitude2 < -180 or longitude2 > 180:
         await interaction.response.send_message("Invalid longitude value. Longitude must be between -180 and 180 degrees.")
         return
 
-    # Call function to get the map as an image
-    # Display map image
-    # Get a link to the coordinates on openstreetmap
-    # Display link as a button
-    await interaction.response.send_message(f'The coordinates are {latitude}, {longitude}')
+    map_html_file = routes.get_html_map(latitude1, longitude1, latitude2, longitude2)
+    discord_file = discord.File(map_html_file, filename='map.html')
 
+    await interaction.response.send_message(content=f'Here is the route from {latitude1}, {longitude1} to {latitude2}, {longitude2}. Open this HTML file in your browser to see the route.', file=discord_file)
 
 client.run(config.DC_TOKEN)
