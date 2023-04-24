@@ -21,7 +21,6 @@ intents = discord.Intents.default()
 client = BotClient(intents=intents)
 
 
-# Console log at start
 @client.event
 async def on_ready():
     print(f'{client.user} has connected to Discord!')
@@ -47,10 +46,18 @@ async def map(interaction: discord.Integration, latitude1: float, longitude1: fl
     if longitude1 < -180 or longitude1 > 180 or longitude2 < -180 or longitude2 > 180:
         await interaction.response.send_message("Invalid longitude value. Longitude must be between -180 and 180 degrees.", ephemeral=True)
         return
+    
+    # The map generation could take more than 3 secconds (which invalidates the discord token for this interaction)
+    # A first response is sent to prevent this
+    await interaction.response.send_message("Please wait... Generating the map.")
 
     map_html_file = routes.get_html_map(latitude1, longitude1, latitude2, longitude2)
-    discord_file = discord.File(map_html_file, filename='map.html')
+    map_png_file = routes.get_png_map_preview(latitude1, longitude1, latitude2, longitude2)
 
-    await interaction.response.send_message(content=f'Here is the route from {latitude1}, {longitude1} to {latitude2}, {longitude2}. Open this HTML file in your browser to see the route.', file=discord_file)
+    discord_html_file = discord.File(map_html_file, filename='map.html')
+    discord_png_file = discord.File(map_png_file, filename='map.png')
+
+    await interaction.edit_original_response(content=f'Here is the route from {latitude1}, {longitude1} to {latitude2}, {longitude2}. Open this HTML file in your browser to see the route.', attachments=[discord_png_file, discord_html_file])
+
 
 client.run(config.DC_TOKEN)
