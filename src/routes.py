@@ -1,7 +1,6 @@
 import config
 
 import io
-from PIL import Image
 import openrouteservice
 import folium
 
@@ -20,8 +19,7 @@ def get_html_map(lat1: float, lon1: float, lat2: float, lon2: float):
 
     html_map = map.get_root().render()
     map_html_file = io.BytesIO(html_map.encode())
-
-    # map.save('route_map.html') ?
+    
     return map_html_file
 
 
@@ -38,7 +36,6 @@ def get_png_map_preview(lat1: float, lon1: float, lat2: float, lon2: float):
     folium.Marker([lat2, lon2], popup='End').add_to(map)
 
     img_data = map._to_png(1)
-    img = Image.open(io.BytesIO(img_data))
+    img = io.BytesIO(img_data)
 
-    # img.save('image.png') ?
     return img
