@@ -13,6 +13,7 @@ def get_html_map(lat1: float, lon1: float, lat2: float, lon2: float):
     map = folium.Map(location=[lat1, lon1], zoom_start=13, zoom_control=True)
     route_layer = folium.GeoJson(routes, name='route')
     route_layer.add_to(map)
+    map.fit_bounds(route_layer.get_bounds())
 
     folium.Marker([lat1, lon1], popup='Start').add_to(map)
     folium.Marker([lat2, lon2], popup='End').add_to(map)
@@ -31,6 +32,7 @@ def get_png_map_preview(lat1: float, lon1: float, lat2: float, lon2: float):
     map = folium.Map(location=[lat1, lon1], zoom_start=13, zoom_control=False)
     route_layer = folium.GeoJson(routes, name='route')
     route_layer.add_to(map)
+    map.fit_bounds(route_layer.get_bounds())
 
     folium.Marker([lat1, lon1], popup='Start').add_to(map)
     folium.Marker([lat2, lon2], popup='End').add_to(map)
