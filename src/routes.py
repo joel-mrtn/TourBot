@@ -15,8 +15,11 @@ def get_html_map(lat1: float, lon1: float, lat2: float, lon2: float):
     route_layer.add_to(map)
     map.fit_bounds(route_layer.get_bounds())
 
-    folium.Marker([lat1, lon1], popup='Start').add_to(map)
-    folium.Marker([lat2, lon2], popup='End').add_to(map)
+    start_icon = folium.Icon(color='green', icon='glyphicon-home')
+    end_icon = folium.Icon(color='red', icon='glyphicon-flag')
+
+    folium.Marker([lat1, lon1], popup='Start', icon=start_icon).add_to(map)
+    folium.Marker([lat2, lon2], popup='End', icon=end_icon).add_to(map)
 
     html_map = map.get_root().render()
     map_html_file = io.BytesIO(html_map.encode())
@@ -34,8 +37,11 @@ def get_png_map_preview(lat1: float, lon1: float, lat2: float, lon2: float):
     route_layer.add_to(map)
     map.fit_bounds(route_layer.get_bounds())
 
-    folium.Marker([lat1, lon1], popup='Start').add_to(map)
-    folium.Marker([lat2, lon2], popup='End').add_to(map)
+    start_icon = folium.Icon(color='green', icon='glyphicon-home')
+    end_icon = folium.Icon(color='red', icon='glyphicon-flag')
+
+    folium.Marker([lat1, lon1], popup='Start', icon=start_icon).add_to(map)
+    folium.Marker([lat2, lon2], popup='End', icon=end_icon).add_to(map)
 
     img_data = map._to_png(1)
     img = io.BytesIO(img_data)
