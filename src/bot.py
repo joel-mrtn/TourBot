@@ -57,7 +57,7 @@ async def map(interaction: discord.Integration, latitude1: float, longitude1: fl
     discord_html_file = discord.File(map_html_file, filename='map.html')
     discord_png_file = discord.File(map_png_file, filename='map.png')
 
-    await interaction.edit_original_response(content=f'Here is the route from {latitude1}, {longitude1} to {latitude2}, {longitude2}. Open this HTML file in your browser to see the route.', attachments=[discord_png_file, discord_html_file])
+    await interaction.edit_original_response(content=f'Here is the route from {latitude1}, {longitude1} to {latitude2}, {longitude2}. Open the HTML file in your browser to see the route.', attachments=[discord_png_file, discord_html_file])
 
 
 client.run(config.DC_TOKEN)
