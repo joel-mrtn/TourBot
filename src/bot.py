@@ -3,7 +3,6 @@ import routes
 
 import discord
 from discord import app_commands
-from PIL import Image
 
 
 class BotClient(discord.Client):
