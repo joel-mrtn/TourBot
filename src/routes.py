@@ -4,6 +4,35 @@ import io
 import openrouteservice
 import folium
 
+import re
+import json
+
+
+class Address:
+    def __init__(self, id, label, latitude, longtitude):
+        self.id = id
+        self.label = label
+        self.latitude = latitude
+        self.longtitude = longtitude
+
+
+def conv_addr_to_coords(address: str):
+    client = openrouteservice.Client(key=config.ORS_KEY)
+    json_data = client.pelias_search(text=address)
+    
+    addresses = []
+    
+    for feature in json_data['features']:
+        address = Address(
+            id = feature['properties']['id'],
+            label = feature['properties']['label'],
+            latitude = feature['geometry']['coordinates'][1],
+            longtitude = feature['geometry']['coordinates'][0]
+        )
+        addresses.append(address)
+    
+    return addresses
+
 
 def get_html_map(lat1: float, lon1: float, lat2: float, lon2: float):
     client = openrouteservice.Client(key=config.ORS_KEY)

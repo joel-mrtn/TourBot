@@ -30,6 +30,13 @@ async def hello(interaction: discord.Integration):
     await interaction.response.send_message(content=f'Hey {interaction.user.mention}! Nice to see you.', ephemeral=True)
 
 
+@client.tree.command(description='Get the coordinates of an address')
+async def addr_to_coords(interaction: discord.Integration, address: str):
+    coords = routes.conv_addr_to_coords(address)
+
+    await interaction.response.send_message(content=f'The address {address} has the following coordinates: {coords[0].latitude}, {coords[0].longtitude}', ephemeral=True)
+
+
 @client.tree.command(description='Generate a HTML file with a route which you can open in your browser')
 @app_commands.describe(
     latitude1='The latitude of the first coordinate',
