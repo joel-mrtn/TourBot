@@ -34,7 +34,28 @@ async def hello(interaction: discord.Integration):
 async def addr_to_coords(interaction: discord.Integration, address: str):
     coords = routes.conv_addr_to_coords(address)
 
-    await interaction.response.send_message(content=f'The address {address} has the following coordinates: {coords[0].latitude}, {coords[0].longtitude}', ephemeral=True)
+    view = discord.ui.View()
+    ui = discord.ui.Select(
+        placeholder = 'Choose from one of your possible addresses',
+        min_values = 1,
+        max_values = 1,
+    )
+
+    for coordinates in coords:
+                option = discord.SelectOption(
+                    label = coordinates.label,
+                    description = f'Latitude: {coordinates.longtitude}, Longtitude: {coordinates.longtitude}'
+                )
+                ui.append_option(option)
+
+    view.add_item(ui)
+    await interaction.response.send_message(content='Choose an address',view=view)
+
+    # Reaction for a chosen address
+    async def address_callback(interaction):
+        await interaction.response.edit_message(content=f'Chosen address: {ui.values[0]}')
+
+    ui.callback = address_callback
 
 
 @client.tree.command(description='Generate a HTML file with a route which you can open in your browser')
