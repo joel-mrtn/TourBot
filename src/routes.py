@@ -4,9 +4,6 @@ import io
 import openrouteservice
 import folium
 
-import re
-import json
-
 
 class Address:
     def __init__(self, id, label, latitude, longtitude):
