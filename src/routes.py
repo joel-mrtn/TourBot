@@ -1,80 +1,54 @@
-import config
+from config import ORS_KEY
+from typing import List
 
 import io
 import openrouteservice
 import folium
 
 
-def create_map(lat1: float, lon1: float, lat2: float, lon2: float):
-    client = openrouteservice.Client(key=config.ORS_KEY)
-    coords = ((lon1, lat1), (lon2, lat2))
-    routes = client.directions(coordinates=coords, profile='cycling-regular', format='geojson')
-
-    map = folium.Map(location=[lat1, lon1], zoom_start=13, zoom_control=True)
-    route_layer = folium.GeoJson(routes, name='route')
-    route_layer.add_to(map)
-    map.fit_bounds(route_layer.get_bounds())
-
-    start_icon = folium.Icon(color='green', icon='glyphicon-home')
-    end_icon = folium.Icon(color='red', icon='glyphicon-flag')
-
-    folium.Marker([lat1, lon1], popup='Start', icon=start_icon).add_to(map)
-    folium.Marker([lat2, lon2], popup='End', icon=end_icon).add_to(map)
-
-    return map
+class Coordinates:
+    def __init__(self, latitude: float, longitude: float):
+        self.latitude = latitude
+        self.longitude = longitude
 
 
-def get_html_map(map: folium.Map):
-    html_map = map.get_root().render()
-    map_html_file = io.BytesIO(html_map.encode())
+class Route:
+    def __init__(self, coordinates_list: List[Coordinates]):
+        self.ors_client = openrouteservice.Client(key=ORS_KEY)
+        self.coordinates_list = coordinates_list
 
-    return map_html_file
+        self.route = self.ors_client.directions(
+            coordinates=[(coords.longitude, coords.latitude) for coords in self.coordinates_list],
+            profile='cycling-regular',
+            format='geojson'
+        )
 
-def get_png_map_preview(map: folium.Map):
-    img_data = map._to_png(1)
-    img = io.BytesIO(img_data)
+    def get_html_map(self):
+        map = folium.Map(zoom_start=13, zoom_control=True)
+        route_layer = folium.GeoJson(self.route, name='route')
+        route_layer.add_to(map)
+        map.fit_bounds(route_layer.get_bounds())
 
-    return img
+        start_icon = folium.Icon(color='green', icon='glyphicon-home')
+        end_icon = folium.Icon(color='red', icon='glyphicon-flag')
 
-def get_html_map_old(lat1: float, lon1: float, lat2: float, lon2: float):
-    client = openrouteservice.Client(key=config.ORS_KEY)
-    coords = ((lon1, lat1), (lon2, lat2))
-    routes = client.directions(coordinates=coords, profile='cycling-regular', format='geojson')
+        folium.Marker([self.coordinates_list[0].latitude, self.coordinates_list[0].longitude], popup='Start', icon=start_icon).add_to(map)
+        folium.Marker([self.coordinates_list[-1].latitude, self.coordinates_list[-1].longitude], popup='End', icon=end_icon).add_to(map)
 
-    map = folium.Map(location=[lat1, lon1], zoom_start=13, zoom_control=True)
-    route_layer = folium.GeoJson(routes, name='route')
-    route_layer.add_to(map)
-    map.fit_bounds(route_layer.get_bounds())
+        html_map = map.get_root().render()
+        return io.BytesIO(html_map.encode())
 
-    start_icon = folium.Icon(color='green', icon='glyphicon-home')
-    end_icon = folium.Icon(color='red', icon='glyphicon-flag')
+    def get_png_map(self):
+        map = folium.Map(zoom_start=13, zoom_control=False)
+        route_layer = folium.GeoJson(self.route, name='route')
+        route_layer.add_to(map)
+        map.fit_bounds(route_layer.get_bounds())
 
-    folium.Marker([lat1, lon1], popup='Start', icon=start_icon).add_to(map)
-    folium.Marker([lat2, lon2], popup='End', icon=end_icon).add_to(map)
+        start_icon = folium.Icon(color='green', icon='glyphicon-home')
+        end_icon = folium.Icon(color='red', icon='glyphicon-flag')
 
-    html_map = map.get_root().render()
-    map_html_file = io.BytesIO(html_map.encode())
-    
-    return map_html_file
+        folium.Marker([self.coordinates_list[0].latitude, self.coordinates_list[0].longitude], popup='Start', icon=start_icon).add_to(map)
+        folium.Marker([self.coordinates_list[-1].latitude, self.coordinates_list[-1].longitude], popup='End', icon=end_icon).add_to(map)
 
-
-def get_png_map_preview_old(lat1: float, lon1: float, lat2: float, lon2: float):
-    client = openrouteservice.Client(key=config.ORS_KEY)
-    coords = ((lon1, lat1), (lon2, lat2))
-    routes = client.directions(coordinates=coords, profile='cycling-regular', format='geojson')
-
-    map = folium.Map(location=[lat1, lon1], zoom_start=13, zoom_control=False)
-    route_layer = folium.GeoJson(routes, name='route')
-    route_layer.add_to(map)
-    map.fit_bounds(route_layer.get_bounds())
-
-    start_icon = folium.Icon(color='green', icon='glyphicon-home')
-    end_icon = folium.Icon(color='red', icon='glyphicon-flag')
-
-    folium.Marker([lat1, lon1], popup='Start', icon=start_icon).add_to(map)
-    folium.Marker([lat2, lon2], popup='End', icon=end_icon).add_to(map)
-
-    img_data = map._to_png(1)
-    img = io.BytesIO(img_data)
-
-    return img
+        img_data = map._to_png(1)
+        return io.BytesIO(img_data)

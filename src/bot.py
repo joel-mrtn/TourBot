@@ -1,5 +1,5 @@
-import config
-import routes
+from config import DC_TOKEN, DC_GUILD
+from routes import Coordinates, Route
 
 import discord
 from discord import app_commands
@@ -12,8 +12,8 @@ class BotClient(discord.Client):
 
     # By specifically naming the guild, the commands are updated faster on the server.
     async def setup_hook(self):
-        self.tree.copy_global_to(guild=config.DC_GUILD)
-        await self.tree.sync(guild=config.DC_GUILD)
+        self.tree.copy_global_to(guild=DC_GUILD)
+        await self.tree.sync(guild=DC_GUILD)
 
 
 intents = discord.Intents.default()
@@ -50,16 +50,17 @@ async def map(interaction: discord.Integration, latitude1: float, longitude1: fl
     # A first response is sent to prevent this
     await interaction.response.send_message("Please wait... Generating the map.")
 
-    #map_html_file = routes.get_html_map(latitude1, longitude1, latitude2, longitude2)
-    #map_png_file = routes.get_png_map_preview(latitude1, longitude1, latitude2, longitude2)
-    map = routes.create_map(latitude1, longitude1, latitude2, longitude2)
-    map_html_file = routes.get_html_map(map)
-    map_png_file = routes.get_png_map_preview(map)
+    route = Route(
+        coordinates_list=[Coordinates(latitude1, longitude1), Coordinates(latitude2, longitude2)]
+    )
 
-    discord_html_file = discord.File(map_html_file, filename='map.html')
-    discord_png_file = discord.File(map_png_file, filename='map.png')
+    discord_html_file = discord.File(route.get_html_map(), filename='map.html')
+    discord_png_file = discord.File(route.get_png_map(), filename='map.png')
 
-    await interaction.edit_original_response(content=f'Here is the route from {latitude1}, {longitude1} to {latitude2}, {longitude2}. Open the HTML file in your browser to see the route.', attachments=[discord_png_file, discord_html_file])
+    await interaction.edit_original_response(
+        content=f'Here is the route from {latitude1}, {longitude1} to {latitude2}, {longitude2}. Open the HTML file in your browser to see the route.',
+        attachments=[discord_png_file, discord_html_file]
+    )
 
 
-client.run(config.DC_TOKEN)
+client.run(DC_TOKEN)
