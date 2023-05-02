@@ -63,7 +63,7 @@ class Address:
 
 
 def conv_addr_to_coords(address: str):
-    client = openrouteservice.Client(key=config.ORS_KEY)
+    client = openrouteservice.Client(key=ORS_KEY)
     json_data = client.pelias_search(text=address)
     
     addresses = []
