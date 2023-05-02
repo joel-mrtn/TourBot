@@ -4,6 +4,8 @@ import routes
 import discord
 from discord import app_commands
 
+import re
+
 
 class BotClient(discord.Client):
     def __init__(self, *, intents: discord.Intents):
@@ -30,32 +32,47 @@ async def hello(interaction: discord.Integration):
     await interaction.response.send_message(content=f'Hey {interaction.user.mention}! Nice to see you.', ephemeral=True)
 
 
-@client.tree.command(description='Get the coordinates of an address')
-async def addr_to_coords(interaction: discord.Integration, address: str):
-    coords = routes.conv_addr_to_coords(address)
+@client.tree.command(description='Choose addresses for the start and end')
+async def start_and_end(interaction: discord.Integration, start_addr: str, end_addr: str):
+    start_coords = routes.conv_addr_to_coords(start_addr)
+    end_coords = routes.conv_addr_to_coords(end_addr)
 
     view = discord.ui.View()
-    ui = discord.ui.Select(
-        placeholder = 'Choose from one of your possible addresses',
-        min_values = 1,
-        max_values = 1,
-    )
+    
+    class AddressSelect(discord.ui.Select):
+        def __init__(self, position: str) -> None:
+            super().__init__(
+                placeholder = f'Choose from one of your possible {position} addresses',
+                min_values = 1,
+                max_values = 1,
+            )
 
-    for coordinates in coords:
-                option = discord.SelectOption(
-                    label = coordinates.label,
-                    description = f'Latitude: {coordinates.longtitude}, Longtitude: {coordinates.longtitude}'
-                )
-                ui.append_option(option)
+    ui_start = AddressSelect('start')
+    ui_end = AddressSelect('end')
 
-    view.add_item(ui)
-    await interaction.response.send_message(content='Choose an address',view=view)
+    def check_type_address(ui):
+        if re.search('.*end address.*', ui.placeholder):
+            return 'end address'
+        else:
+            return 'start address'
+    
+    def fill_selectmenu(point_coords, ui, view):
+        for coordinates in point_coords:
+            option = discord.SelectOption(
+                label = coordinates.label,
+                description = f'Latitude: {coordinates.latitude}, Longtitude: {coordinates.longtitude}'
+            )
+            ui.append_option(option)
+        view.add_item(ui)
+        async def address_callback(interaction):
+            await interaction.response.send_message(content=f'Chosen {check_type_address(ui)}: {ui.values[0]}\n{ui.options[0].description}', ephemeral=True)
+        
+        ui.callback=address_callback
+    
+    fill_selectmenu(start_coords, ui_start, view)
+    fill_selectmenu(end_coords, ui_end, view)
 
-    # Reaction for a chosen address
-    async def address_callback(interaction):
-        await interaction.response.edit_message(content=f'Chosen address: {ui.values[0]}')
-
-    ui.callback = address_callback
+    await interaction.response.send_message(content='Choose your preferred addresses', view=view)
 
 
 @client.tree.command(description='Generate a HTML file with a route which you can open in your browser')
