@@ -1,9 +1,9 @@
 from config import DC_TOKEN, DC_GUILD
 from routes import Coordinates, Route
-
-import discord
 from discord import app_commands
 
+import routes
+import discord
 import re
 
 
