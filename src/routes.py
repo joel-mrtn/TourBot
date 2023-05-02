@@ -52,3 +52,29 @@ class Route:
 
         img_data = map._to_png(1)
         return io.BytesIO(img_data)
+
+
+class Address:
+    def __init__(self, id, label, latitude, longtitude):
+        self.id = id
+        self.label = label
+        self.latitude = latitude
+        self.longtitude = longtitude
+
+
+def conv_addr_to_coords(address: str):
+    client = openrouteservice.Client(key=config.ORS_KEY)
+    json_data = client.pelias_search(text=address)
+    
+    addresses = []
+    
+    for feature in json_data['features']:
+        address = Address(
+            id = feature['properties']['id'],
+            label = feature['properties']['label'],
+            latitude = feature['geometry']['coordinates'][1],
+            longtitude = feature['geometry']['coordinates'][0]
+        )
+        addresses.append(address)
+    
+    return addresses
