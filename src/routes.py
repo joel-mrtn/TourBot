@@ -35,6 +35,7 @@ class Route:
         self.ors_client = openrouteservice.Client(key=ORS_KEY)
         self.route_points = route_points
 
+        # API call
         self.geojson = self.ors_client.directions(
             coordinates=[(coords.longitude, coords.latitude) for coords in self.route_points],
             elevation=True,
@@ -42,17 +43,36 @@ class Route:
             format='geojson'
         )
 
-        self.distance: float = self.geojson['features'][0]['properties']['summary']['distance']
-        self.duration: float = self.geojson['features'][0]['properties']['summary']['duration']
-        self.ascent: float = self.geojson['features'][0]['properties']['ascent']
-        self.descent: float = self.geojson['features'][0]['properties']['descent']
-        # self.route_segments
+        geojson_properties = self.geojson['features'][0]['properties']
+        geojson_coordinates = self.geojson['features'][0]['geometry']['coordinates']
 
-        # Test
-        print(self.distance)
-        print(self.duration)
-        print(self.ascent)
-        print(self.descent)
+        self.distance: float = geojson_properties['summary']['distance']
+        self.duration: float = geojson_properties['summary']['duration']
+        self.ascent: float = geojson_properties['ascent']
+        self.descent: float = geojson_properties['descent']
+
+        self.segments = [
+            RouteSegment(**{
+                'distance': segment['distance'],
+                'duration': segment['duration'],
+                'ascent': segment['ascent'],
+                'descent': segment['descent'],
+                'route_steps': [
+                    RouteStep(**{
+                        'distance': step['distance'],
+                        'duration': step['duration'],
+                        'instruction': step['instruction'],
+                        'way_points': [
+                            Coordinates(**{
+                                'latitude': geojson_coordinates[i][1],
+                                'longitude': geojson_coordinates[i][0],
+                                'elevation': geojson_coordinates[i][2],
+                            }) for i in range(step['way_points'][0], step['way_points'][1])
+                        ]
+                    }) for step in segment['steps']
+                ]
+            }) for segment in geojson_properties['segments']
+        ]
 
     def get_html_map(self):
         map = folium.Map(zoom_start=13, zoom_control=True)
