@@ -37,15 +37,22 @@ class Route:
 
         self.geojson = self.ors_client.directions(
             coordinates=[(coords.longitude, coords.latitude) for coords in self.route_points],
+            elevation=True,
             profile='cycling-regular',
             format='geojson'
         )
 
-        # self.distance
-        # self.duration
-        # self.ascent
-        # self.descent
+        self.distance: float = self.geojson['features'][0]['properties']['summary']['distance']
+        self.duration: float = self.geojson['features'][0]['properties']['summary']['duration']
+        self.ascent: float = self.geojson['features'][0]['properties']['ascent']
+        self.descent: float = self.geojson['features'][0]['properties']['descent']
         # self.route_segments
+
+        # Test
+        print(self.distance)
+        print(self.duration)
+        print(self.ascent)
+        print(self.descent)
 
     def get_html_map(self):
         map = folium.Map(zoom_start=13, zoom_control=True)
