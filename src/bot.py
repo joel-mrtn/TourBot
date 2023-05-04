@@ -96,7 +96,7 @@ async def map(interaction: discord.Integration, latitude1: float, longitude1: fl
     await interaction.response.send_message("Please wait... Generating the map.")
 
     route = Route(
-        coordinates_list=[Coordinates(latitude1, longitude1), Coordinates(latitude2, longitude2)]
+        route_points=[Coordinates(latitude1, longitude1), Coordinates(latitude2, longitude2)]
     )
 
     discord_html_file = discord.File(route.get_html_map(), filename='map.html')
