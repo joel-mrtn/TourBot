@@ -1,5 +1,6 @@
 from config import DC_TOKEN, DC_GUILD
-from routes import Coordinates, Route
+from typing import List
+from routes import Address, Coordinates, Route
 from discord import app_commands
 
 import routes
@@ -50,17 +51,17 @@ async def start_and_end(interaction: discord.Integration, start_addr: str, end_a
     ui_start = AddressSelect('start')
     ui_end = AddressSelect('end')
 
-    def check_type_address(ui):
+    def check_type_address(ui: AddressSelect):
         if re.search('.*end address.*', ui.placeholder):
             return 'end address'
         else:
             return 'start address'
     
-    def fill_selectmenu(point_coords, ui, view):
-        for coordinates in point_coords:
+    def fill_selectmenu(address_list: List[Address], ui: AddressSelect, view: discord.ui.View):
+        for address_obj in address_list:
             option = discord.SelectOption(
-                label = coordinates.label,
-                description = f'Latitude: {coordinates.latitude}, Longtitude: {coordinates.longtitude}'
+                label = address_obj.label,
+                description = f'Latitude: {address_obj.coordinates.latitude}, Longtitude: {address_obj.coordinates.longitude}'
             )
             ui.append_option(option)
         view.add_item(ui)
