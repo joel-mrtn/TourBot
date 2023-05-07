@@ -2,15 +2,10 @@ from config import DC_TOKEN, DC_GUILD
 from typing import List
 from routes import Address, Coordinates, Route
 from discord import app_commands
+from ui import AddressSelect, Elements
 
 import discord
 import re
-
-
-selected_start_addr:str
-selected_start_desc:str
-selected_end_addr:str
-selected_end_desc:str
 
 
 class BotClient(discord.Client):
@@ -44,46 +39,14 @@ async def gen_map(interaction: discord.Integration, start_addr: str, end_addr: s
     end_coords = Address.conv_addr_to_coords(end_addr)
 
     view = discord.ui.View()
-    
-    class AddressSelect(discord.ui.Select):
-        def __init__(self, position: str) -> None:
-            super().__init__(
-                placeholder = f'Choose from one of your possible {position} addresses',
-                min_values = 1,
-                max_values = 1,
-            )
 
     ui_start = AddressSelect('start')
     ui_end = AddressSelect('end')
 
-    def check_type_address(ui: AddressSelect):
-        if re.search('.*end address.*', ui.placeholder):
-            return 'end address'
-        else:
-            return 'start address'
-    
-    def fill_selectmenu(address_list: List[Address], ui: AddressSelect, view: discord.ui.View):
-        for address_obj in address_list:
-            option = discord.SelectOption(
-                label = address_obj.label,
-                description = f'Latitude: {address_obj.coordinates.latitude}, Longitude: {address_obj.coordinates.longitude}'
-            )
-            ui.append_option(option)
-        view.add_item(ui)
-        async def address_callback(interaction):
-            global selected_end_addr, selected_end_desc, selected_start_addr, selected_start_desc
-            await interaction.response.send_message(content=f'Chosen {check_type_address(ui)}: {ui.values[0]}\n{ui.options[0].description}', ephemeral=True)
-            if check_type_address(ui) == 'end address':
-                selected_end_addr = ui.values[0]
-                selected_end_desc = ui.options[0].description
-            else:
-                selected_start_addr = ui.values[0]
-                selected_start_desc = ui.options[0].description
-                    
-        ui.callback=address_callback
+    elements = Elements()
 
-    fill_selectmenu(start_coords, ui_start, view)
-    fill_selectmenu(end_coords, ui_end, view)
+    elements.fill_selectmenu(start_coords, ui_start, view)
+    elements.fill_selectmenu(end_coords, ui_end, view)
 
     def create_gen_button(view: discord.ui.View):
         button = discord.ui.Button(
@@ -92,7 +55,7 @@ async def gen_map(interaction: discord.Integration, start_addr: str, end_addr: s
         )
 
         async def gen_map_callback(interaction):
-            await test_map(interaction)
+            await test_map(interaction, elements)
 
         button.callback = gen_map_callback
 
@@ -136,13 +99,13 @@ async def map(interaction: discord.Integration, latitude1: float, longitude1: fl
     )
 
 
-async def test_map(interaction: discord.Integration):    
+async def test_map(interaction: discord.Integration, elements: Elements):    
     # The map generation could take more than 3 secconds (which invalidates the discord token for this interaction)
     # A first response is sent to prevent this
     await interaction.response.send_message("Please wait... Generating the map.")
 
-    start_coords = Coordinates(float(re.findall("Latitude: ([\d.]+)", selected_start_desc)[0]), float(re.findall("Longitude: ([\d.]+)", selected_start_desc)[0]))
-    end_coords = Coordinates(float(re.findall("Latitude: ([\d.]+)", selected_end_desc)[0]), float(re.findall("Longitude: ([\d.]+)", selected_end_desc)[0]))
+    start_coords = Coordinates(float(re.findall("Latitude: ([\d.]+)", elements.selected_start_desc)[0]), float(re.findall("Longitude: ([\d.]+)", elements.selected_start_desc)[0]))
+    end_coords = Coordinates(float(re.findall("Latitude: ([\d.]+)", elements.selected_end_desc)[0]), float(re.findall("Longitude: ([\d.]+)", elements.selected_end_desc)[0]))
 
     route = Route(
         coordinates_list=[start_coords, end_coords]
@@ -152,7 +115,7 @@ async def test_map(interaction: discord.Integration):
     discord_png_file = discord.File(route.get_png_map(), filename='map.png')
 
     await interaction.edit_original_response(
-        content=f'Here is the route from {selected_start_addr} to {selected_end_addr}. Open the HTML file in your browser to see the route.',
+        content=f'Here is the route from {elements.selected_start_addr} to {elements.selected_end_addr}. Open the HTML file in your browser to see the route.',
         attachments=[discord_png_file, discord_html_file]
     )
 
