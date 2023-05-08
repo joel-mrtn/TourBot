@@ -81,9 +81,11 @@ class Route:
         map.fit_bounds(route_layer.get_bounds())
 
         start_icon = folium.Icon(color='green', icon='glyphicon-home')
+        waypoint_icon = folium.Icon(color='blue', icon='star')
         end_icon = folium.Icon(color='red', icon='glyphicon-flag')
 
         folium.Marker([self.route_points[0].latitude, self.route_points[0].longitude], popup='Start', icon=start_icon).add_to(map)
+        folium.Marker([self.route_points[-2].latitude, self.route_points[-2].longitude], popup='point', icon=waypoint_icon).add_to(map)
         folium.Marker([self.route_points[-1].latitude, self.route_points[-1].longitude], popup='End', icon=end_icon).add_to(map)
 
         html_map = map.get_root().render()
@@ -96,9 +98,11 @@ class Route:
         map.fit_bounds(route_layer.get_bounds())
 
         start_icon = folium.Icon(color='green', icon='glyphicon-home')
+        waypoint_icon = folium.Icon(color='blue', icon='star')
         end_icon = folium.Icon(color='red', icon='glyphicon-flag')
 
         folium.Marker([self.route_points[0].latitude, self.route_points[0].longitude], popup='Start', icon=start_icon).add_to(map)
+        folium.Marker([self.route_points[-2].latitude, self.route_points[-2].longitude], popup='point', icon=waypoint_icon).add_to(map)
         folium.Marker([self.route_points[-1].latitude, self.route_points[-1].longitude], popup='End', icon=end_icon).add_to(map)
 
         img_data = map._to_png(1)

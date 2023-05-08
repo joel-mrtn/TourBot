@@ -90,13 +90,15 @@ async def gen_map(interaction: discord.Interaction, start_addr: str, end_addr: s
     longitude1='The longitude of the first coordinate',
     latitude2='The latitude of the seccond coordinate',
     longitude2='The longitude of the seccond coordinate',
+    latitude3='The latitude of the waypoint coordinate',
+    longitude3='The longitude of the waypoint coordinate'
 )
-async def map(interaction: discord.Interaction, latitude1: float, longitude1: float, latitude2: float, longitude2: float):
-    if latitude1 < -90 or latitude1 > 90 or latitude2 < -90 or latitude2 > 90:
+async def map(interaction: discord.Interaction, latitude1: float, longitude1: float, latitude2: float, longitude2: float, latitude3: float, longitude3: float):
+    if latitude1 < -90 or latitude1 > 90 or latitude2 < -90 or latitude2 > 90 or latitude3 < -90 or latitude3 > 90:
         await interaction.response.send_message("Invalid latitude value. Latitude must be between -90 and 90 degrees.", ephemeral=True)
         return
 
-    if longitude1 < -180 or longitude1 > 180 or longitude2 < -180 or longitude2 > 180:
+    if longitude1 < -180 or longitude1 > 180 or longitude2 < -180 or longitude2 > 180 or longitude3 < -180 or longitude3 > 180:
         await interaction.response.send_message("Invalid longitude value. Longitude must be between -180 and 180 degrees.", ephemeral=True)
         return
     
@@ -105,12 +107,12 @@ async def map(interaction: discord.Interaction, latitude1: float, longitude1: fl
     await interaction.response.send_message("Please wait... Generating the route.")
 
     route = Route(
-        route_points=[Coordinates(latitude1, longitude1), Coordinates(latitude2, longitude2)]
+        route_points=[Coordinates(latitude1, longitude1), Coordinates(latitude2, longitude2), Coordinates(latitude3, longitude3)]
     )
 
     overview_embed = discord.Embed(
         title='Your route',
-        description=f'Here is the route from {latitude1}, {longitude1} to {latitude2}, {longitude2}. Open the HTML file in your browser to see the route.'
+        description=f'Here is the route from {latitude1}, {longitude1} to {latitude2}, {longitude2} via {latitude3}, {longitude3}. Open the HTML file in your browser to see the route.'
     )
     overview_embed.set_image(url='attachment://map.png')
     overview_embed.set_footer(text=f'The interactive map generation will only be available the first 15 minutes and 15 minutes after the first generation.')
