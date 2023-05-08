@@ -106,26 +106,24 @@ class Route:
 
 
 class Address:
-    def __init__(self, id, label, latitude, longtitude):
+    def __init__(self, id: str, label: str, coordinates: Coordinates):
         self.id = id
         self.label = label
-        self.latitude = latitude
-        self.longtitude = longtitude
+        self.coordinates = coordinates
 
 
-def conv_addr_to_coords(address: str):
-    client = openrouteservice.Client(key=ORS_KEY)
-    json_data = client.pelias_search(text=address)
+    def conv_addr_to_coords(address: str):
+        client = openrouteservice.Client(key=ORS_KEY)
+        json_data = client.pelias_search(text=address)
     
-    addresses = []
+        addresses = []
     
-    for feature in json_data['features']:
-        address = Address(
-            id = feature['properties']['id'],
-            label = feature['properties']['label'],
-            latitude = feature['geometry']['coordinates'][1],
-            longtitude = feature['geometry']['coordinates'][0]
-        )
-        addresses.append(address)
+        for feature in json_data['features']:
+            address = Address(
+                id = feature['properties']['id'],
+                label = feature['properties']['label'],
+                coordinates = Coordinates(feature['geometry']['coordinates'][1], feature['geometry']['coordinates'][0])
+            )
+            addresses.append(address)
     
-    return addresses
+        return addresses
