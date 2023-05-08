@@ -137,7 +137,7 @@ async def test_map(interaction: discord.Integration, elements: Elements):
     end_coords = Coordinates(float(re.findall("Latitude: ([\d.]+)", elements.selected_end_desc)[0]), float(re.findall("Longitude: ([\d.]+)", elements.selected_end_desc)[0]))
 
     route = Route(
-        coordinates_list=[start_coords, end_coords]
+        route_points=[start_coords, end_coords]
     )
 
     discord_html_file = discord.File(route.get_html_map(), filename='map.html')
