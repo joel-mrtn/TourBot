@@ -81,13 +81,15 @@ async def start_and_end(interaction: discord.Integration, start_addr: str, end_a
     longitude1='The longitude of the first coordinate',
     latitude2='The latitude of the seccond coordinate',
     longitude2='The longitude of the seccond coordinate',
+    latitude3='The latitude of the waypoint coordinate',
+    longitude3='The longitude of the waypoint coordinate'
 )
-async def map(interaction: discord.Integration, latitude1: float, longitude1: float, latitude2: float, longitude2: float):
-    if latitude1 < -90 or latitude1 > 90 or latitude2 < -90 or latitude2 > 90:
+async def map(interaction: discord.Integration, latitude1: float, longitude1: float, latitude2: float, longitude2: float, latitude3: float, longitude3: float):
+    if latitude1 < -90 or latitude1 > 90 or latitude2 < -90 or latitude2 > 90 or latitude3 < -90 or latitude3 > 90:
         await interaction.response.send_message("Invalid latitude value. Latitude must be between -90 and 90 degrees.", ephemeral=True)
         return
 
-    if longitude1 < -180 or longitude1 > 180 or longitude2 < -180 or longitude2 > 180:
+    if longitude1 < -180 or longitude1 > 180 or longitude2 < -180 or longitude2 > 180 or longitude3 < -180 or longitude3 > 180:
         await interaction.response.send_message("Invalid longitude value. Longitude must be between -180 and 180 degrees.", ephemeral=True)
         return
     
@@ -96,15 +98,15 @@ async def map(interaction: discord.Integration, latitude1: float, longitude1: fl
     await interaction.response.send_message("Please wait... Generating the map.")
 
     route = Route(
-        #coordinates_list=[Coordinates(latitude1, longitude1), Coordinates(latitude2, longitude2)]
-        coordinates_list=[Coordinates(49.41461, 8.681495), Coordinates(49.420318,  8.687872), Coordinates(49.48,  8.689)]
+        coordinates_list=[Coordinates(latitude1, longitude1), Coordinates(latitude2, longitude2), Coordinates(latitude3, longitude3)]
+        #coordinates_list=[Coordinates(49.41461, 8.681495), Coordinates(49.420318,  8.687872), Coordinates(49.48,  8.689)]
     )
 
     discord_html_file = discord.File(route.get_html_map(), filename='map.html')
     discord_png_file = discord.File(route.get_png_map(), filename='map.png')
 
     await interaction.edit_original_response(
-        content=f'Here is the route from {latitude1}, {longitude1} to {latitude2}, {longitude2}. Open the HTML file in your browser to see the route.',
+        content=f'Here is the route from {latitude1}, {longitude1} to {latitude2}, {longitude2}. via {latitude3}, {longitude3}.  Open the HTML file in your browser to see the route.',
         attachments=[discord_png_file, discord_html_file]
     )
 
