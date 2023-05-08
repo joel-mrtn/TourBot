@@ -112,7 +112,7 @@ async def map(interaction: discord.Interaction, latitude1: float, longitude1: fl
 
     overview_embed = discord.Embed(
         title='Your route',
-        description=f'Here is the route from {latitude1}, {longitude1} to {latitude2}, {longitude2} via {latitude3}, {longitude3}. Open the HTML file in your browser to see the route.'
+        description=f'Here is the route from {latitude1}, {longitude1} to {latitude3}, {longitude3} via {latitude2}, {longitude3}. Open the HTML file in your browser to see the route.'
     )
     overview_embed.set_image(url='attachment://map.png')
     overview_embed.set_footer(text=f'The interactive map generation will only be available the first 15 minutes and 15 minutes after the first generation.')
