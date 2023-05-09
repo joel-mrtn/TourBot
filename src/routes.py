@@ -116,11 +116,11 @@ class Address:
         self.coordinates = coordinates
 
 
-    def conv_addr_to_coords(address: str):
+    def get_addres_list_from_str(address: str):
         client = openrouteservice.Client(key=ORS_KEY)
         json_data = client.pelias_search(text=address)
     
-        addresses: List[Address] = []
+        address_list: List[Address] = []
     
         for feature in json_data['features']:
             address = Address(
@@ -128,6 +128,6 @@ class Address:
                 label = feature['properties']['label'],
                 coordinates = Coordinates(feature['geometry']['coordinates'][1], feature['geometry']['coordinates'][0])
             )
-            addresses.append(address)
+            address_list.append(address)
     
-        return addresses
+        return address_list

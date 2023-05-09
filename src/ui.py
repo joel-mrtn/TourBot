@@ -38,20 +38,27 @@ class AddressSelect(discord.ui.Select):
 
 
 class AddressSelectButton(discord.ui.Button):
-    def __init__(self, *, custom_id: str, label: str, start_select: AddressSelect):
+    def __init__(self, *, custom_id: str, label: str, start_select: AddressSelect, end_select: AddressSelect):
         super().__init__(custom_id=custom_id, label=label)
         self.start_select = start_select
+        self.end_select = end_select
 
     async def callback(self, interaction: discord.Interaction):
-        address = self.start_select.selected_value
+        start_address = self.start_select.selected_value
+        end_address = self.end_select.selected_value
 
-        await interaction.response.send_message(content=f'{address.label}')
+        await test_map(
+            interaction=interaction,
+            start_address=start_address,
+            end_address=end_address
+        )
 
 
 class AddressSelectView(discord.ui.View):
-    def __init__(self, select_menu: AddressSelect, button: discord.ui.Button):
+    def __init__(self, start_select: AddressSelect, end_select: AddressSelect, button: discord.ui.Button):
         super().__init__(timeout=900)
-        self.add_item(select_menu)
+        self.add_item(start_select)
+        self.add_item(end_select)
         self.add_item(button)
 
 
@@ -73,48 +80,19 @@ class RouteButtonsView(discord.ui.View):
         )
 
 
-class Elements:
-    def __init__(self) -> None:
-        self.selected_start_addr = ""
-        self.selected_start_desc = ""
-        self.selected_end_addr = ""
-        self.selected_end_desc = ""
-    
-    def add_start(self, label: str, desc: str):
-        self.selected_start_addr = label
-        self.selected_start_desc = desc
-    
-    def add_end(self, label: str, desc: str):
-        self.selected_end_addr = label
-        self.selected_end_desc = desc
+async def test_map(interaction: discord.Interaction, start_address: Address, end_address: Address):    
+    # The map generation could take more than 3 secconds (which invalidates the discord token for this interaction)
+    # A first response is sent to prevent this
+    await interaction.response.send_message("Please wait... Generating the map.")
 
-    def check_type_address(ui: AddressSelect):
-        if re.search(".*end address.*", ui.placeholder):
-            return "end address"
-        else:
-            return "start address"
+    route = Route(
+        route_points=[start_address.coordinates, end_address.coordinates]
+    )
 
+    discord_html_file = discord.File(route.get_html_map(), filename='map.html')
+    discord_png_file = discord.File(route.get_png_map(), filename='map.png')
 
-    def fill_selectmenu(self, address_list: List[Address], ui: AddressSelect, view: discord.ui.View):
-        for address_obj in address_list:
-            option = discord.SelectOption(
-                label=address_obj.label,
-                description=f"Latitude: {address_obj.coordinates.latitude}, Longitude: {address_obj.coordinates.longitude}",
-            )
-            ui.append_option(option)
-        view.add_item(ui)
-
-        async def address_callback(interaction):
-            #global selected_end_addr, selected_end_desc, selected_start_addr, selected_start_desc
-            await interaction.response.send_message(
-                content=f"Chosen {Elements.check_type_address(ui)}: {ui.values[0]}\n{ui.options[0].description}",
-                ephemeral=True,
-            )
-            if Elements.check_type_address(ui) == "end address":
-                self.add_end(ui.values[0], ui.options[0].description)
-            else:
-                self.add_start(ui.values[0], ui.options[0].description)
-
-        ui.callback = address_callback
-
-        return self
+    await interaction.edit_original_response(
+        content=f'Here is the route from {start_address.label} to {end_address.label}. Open the HTML file in your browser to see the route.',
+        attachments=[discord_png_file, discord_html_file]
+    )

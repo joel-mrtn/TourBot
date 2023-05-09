@@ -2,7 +2,7 @@ from config import DC_TOKEN, DC_GUILD
 from typing import List
 from routes import Address, Coordinates, Route
 from discord import app_commands
-from ui import AddressSelect, Elements, RouteButtonsView, AddressSelectView, AddressSelectButton
+from ui import AddressSelect, RouteButtonsView, AddressSelectView, AddressSelectButton
 
 import discord
 import re
@@ -33,50 +33,26 @@ async def hello(interaction: discord.Interaction):
     await interaction.response.send_message(content=f'Hey {interaction.user.mention}! Nice to see you.', ephemeral=True)
 
 
-@client.tree.command(description="Select test command")
-async def select_test(interaction: discord.Interaction):
-    adress_list = Address.conv_addr_to_coords('Rheingaustraße 7')
+@client.tree.command(description='Choose addresses for the start and end')
+async def gen_map(interaction: discord.Interaction, start_addr: str, end_addr: str):
+    start_address_list = Address.get_addres_list_from_str(start_addr)
+    end_address_list = Address.get_addres_list_from_str(end_addr)
 
-    start_select = AddressSelect('start', adress_list)
+    start_select = AddressSelect(position_text='start', address_list=start_address_list)
+    end_select = AddressSelect(position_text='start', address_list=end_address_list)
+
     button = AddressSelectButton(
         custom_id='gen_map',
         label='Generate map',
-        start_select=start_select
+        start_select=start_select,
+        end_select=end_select
     )
-    view = AddressSelectView(start_select, button=button)
 
-    await interaction.response.send_message(view=view)
-
-
-@client.tree.command(description='Choose addresses for the start and end')
-async def gen_map(interaction: discord.Interaction, start_addr: str, end_addr: str):
-    start_coords = Address.conv_addr_to_coords(start_addr)
-    end_coords = Address.conv_addr_to_coords(end_addr)
-
-    view = discord.ui.View()
-
-    ui_start = AddressSelect('start')
-    ui_end = AddressSelect('end')
-
-    elements = Elements()
-
-    elements.fill_selectmenu(start_coords, ui_start, view)
-    elements.fill_selectmenu(end_coords, ui_end, view)
-
-    def create_gen_button(view: discord.ui.View):
-        button = discord.ui.Button(
-            custom_id = "gen_map",
-            label = "Generate map",
-        )
-
-        async def gen_map_callback(interaction):
-            await test_map(interaction, elements)
-
-        button.callback = gen_map_callback
-
-        view.add_item(button)
-    
-    create_gen_button(view)
+    view = AddressSelectView(
+        start_select=start_select,
+        end_select=end_select,
+        button=button
+    )
 
     await interaction.response.send_message(content='Choose your preferred addresses', view=view)
 
@@ -124,27 +100,6 @@ async def map(interaction: discord.Interaction, latitude1: float, longitude1: fl
         embeds=[overview_embed, details_embed],
         attachments=[discord.File(route.get_png_map(), filename='map.png')],
         view=RouteButtonsView(route)
-    )
-
-
-async def test_map(interaction: discord.Integration, elements: Elements):    
-    # The map generation could take more than 3 secconds (which invalidates the discord token for this interaction)
-    # A first response is sent to prevent this
-    await interaction.response.send_message("Please wait... Generating the map.")
-
-    start_coords = Coordinates(float(re.findall("Latitude: ([\d.]+)", elements.selected_start_desc)[0]), float(re.findall("Longitude: ([\d.]+)", elements.selected_start_desc)[0]))
-    end_coords = Coordinates(float(re.findall("Latitude: ([\d.]+)", elements.selected_end_desc)[0]), float(re.findall("Longitude: ([\d.]+)", elements.selected_end_desc)[0]))
-
-    route = Route(
-        route_points=[start_coords, end_coords]
-    )
-
-    discord_html_file = discord.File(route.get_html_map(), filename='map.html')
-    discord_png_file = discord.File(route.get_png_map(), filename='map.png')
-
-    await interaction.edit_original_response(
-        content=f'Here is the route from {elements.selected_start_addr} to {elements.selected_end_addr}. Open the HTML file in your browser to see the route.',
-        attachments=[discord_png_file, discord_html_file]
     )
 
 
