@@ -2,7 +2,7 @@ from config import DC_TOKEN, DC_GUILD
 from typing import List
 from routes import Address, Coordinates, Route
 from discord import app_commands
-from ui import AddressSelect, Elements
+from ui import AddressSelect, Elements, RouteButtonsView, AddressSelectView, AddressSelectButton
 
 import discord
 import re
@@ -24,24 +24,6 @@ class BotClient(discord.Client):
         await self.tree.sync(guild=DC_GUILD)
 
 
-class route_buttons_view(discord.ui.View):
-    def __init__(self, route: Route):
-        super().__init__(timeout=900)
-        self.route = route
-
-    @discord.ui.button(custom_id='route_html', emoji='\U0001F5FA', label='Interactive map')
-    async def route_html(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message(
-            content="Please wait... Generating the map.",
-            ephemeral=True
-        )
-
-        await interaction.edit_original_response(
-            content=f'Download the HTML file below and open it in your web browser to see the map.',
-            attachments=[discord.File(self.route.get_html_map(), filename='map.html')]
-        )
-
-
 intents = discord.Intents.default()
 client = BotClient(intents=intents)
 
@@ -49,6 +31,21 @@ client = BotClient(intents=intents)
 @client.tree.command(description='Get a nice greeting from the bot')
 async def hello(interaction: discord.Interaction):
     await interaction.response.send_message(content=f'Hey {interaction.user.mention}! Nice to see you.', ephemeral=True)
+
+
+@client.tree.command(description="Select test command")
+async def select_test(interaction: discord.Interaction):
+    adress_list = Address.conv_addr_to_coords('Rheingaustraße 7')
+
+    start_select = AddressSelect('start', adress_list)
+    button = AddressSelectButton(
+        custom_id='gen_map',
+        label='Generate map',
+        start_select=start_select
+    )
+    view = AddressSelectView(start_select, button=button)
+
+    await interaction.response.send_message(view=view)
 
 
 @client.tree.command(description='Choose addresses for the start and end')
@@ -126,7 +123,7 @@ async def map(interaction: discord.Interaction, latitude1: float, longitude1: fl
         content=None,
         embeds=[overview_embed, details_embed],
         attachments=[discord.File(route.get_png_map(), filename='map.png')],
-        view=route_buttons_view(route)
+        view=RouteButtonsView(route)
     )
 
 

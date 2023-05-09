@@ -120,7 +120,7 @@ class Address:
         client = openrouteservice.Client(key=ORS_KEY)
         json_data = client.pelias_search(text=address)
     
-        addresses = []
+        addresses: List[Address] = []
     
         for feature in json_data['features']:
             address = Address(
