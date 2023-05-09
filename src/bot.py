@@ -37,7 +37,7 @@ async def gen_map(interaction: discord.Interaction, start_addr: str, end_addr: s
     end_address_list = Address.get_addres_list_from_str(end_addr)
 
     start_select = AddressSelect(position_text='start', address_list=start_address_list)
-    end_select = AddressSelect(position_text='start', address_list=end_address_list)
+    end_select = AddressSelect(position_text='end', address_list=end_address_list)
 
     button = AddressSelectButton(
         custom_id='gen_map',
