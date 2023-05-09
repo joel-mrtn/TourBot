@@ -1,11 +1,9 @@
 from config import DC_TOKEN, DC_GUILD
-from typing import List
 from routes import Address, Coordinates, Route
 from discord import app_commands
 from ui import AddressSelect, RouteButtonsView, AddressSelectView, AddressSelectButton
 
 import discord
-import re
 
 
 class BotClient(discord.Client):

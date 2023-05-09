@@ -1,12 +1,7 @@
-from discord.emoji import Emoji
-from discord.enums import ButtonStyle
-from discord.interactions import Interaction
-from discord.partial_emoji import PartialEmoji
-from routes import Address, Route, Coordinates
-from typing import Any, List, Optional, Union
+from routes import Address, Route
+from typing import List
 
 import discord
-import re
 
 
 class AddressSelect(discord.ui.Select):
