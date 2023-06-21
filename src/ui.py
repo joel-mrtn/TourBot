@@ -95,6 +95,56 @@ class AddressSelect(discord.ui.Select):
                 delete_after=5
         )
 
+# Profile Address Select -------------------------------------------------------------------------
+
+class ProfileSelect(discord.ui.Select):
+    def __init__(self):
+        super().__init__(
+            placeholder=f"Choose option...",
+            min_values=1,
+            max_values=1,
+        )
+
+        self.append_option(discord.SelectOption(label="Regular Bike"))
+        self.append_option(discord.SelectOption(label="Road Bike"))
+        self.append_option(discord.SelectOption(label="Mountain Bike"))
+        self.append_option(discord.SelectOption(label="Electric Bike"))
+
+    async def callback(self, interaction: discord.Interaction):
+        match self.values[0]:
+            case "Regular Bike":
+                self.selected_value = "cycling-regular"
+            case "Road Bike":
+                self.selected_value = "cycling-road"
+            case "Mountain Bike":
+                self.selected_value = "cycling-mountain"
+            case "Electric Bike":
+                self.selected_value = "cycling-electric"
+
+        await interaction.response.send_message(
+                content=f"Option {self.values[0]} selected.",
+                ephemeral=True,
+                delete_after=5
+        )
+
+class ProfileSelectButton(discord.ui.Button):
+    def __init__(self, *, custom_id: str, label: str, select: ProfileSelect, next_function: callable, interaction_obj):
+        super().__init__(custom_id=custom_id, label=label)
+        self.select = select
+        self.next_function = next_function
+        self.interaction_obj = interaction_obj
+
+    async def callback(self, interaction: discord.Interaction):
+        self.interaction_obj.cycling_profile = self.select.selected_value
+
+        await self.next_function(interaction, self.interaction_obj)
+
+class ProfileSelectView(discord.ui.View):
+    def __init__(self, select: ProfileSelect, button: ProfileSelectButton):
+        super().__init__(timeout=900)
+        self.add_item(select)
+        self.add_item(button)
+
 # First Address Select ---------------------------------------------------------------------------
 
 class FirstAddressSelectButton(discord.ui.Button):

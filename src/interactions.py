@@ -1,5 +1,6 @@
 from routes import Address, Route
 from typing import List
+from math import floor
 
 import discord
 import ui
@@ -12,6 +13,8 @@ class RouteInteraction:
     start_address: Address
     end_address: Address
     stops_address: List[Address] = []
+
+    cycling_profile: str
 
 # ------------------------------------------------------------------------------------------------
 
@@ -90,7 +93,7 @@ async def stops_question(interaction: discord.Interaction, obj: RouteInteraction
             button2=ui.NextFunctionButton(
                 custom_id='stops_no',
                 label='No',
-                next_function=route_output,
+                next_function=select_profile,
                 interaction_obj=obj
             )
         )
@@ -132,7 +135,7 @@ async def select_stops_addresses(interaction: discord.Interaction, obj: RouteInt
         custom_id='first_addresses_submit',
         label='Submit',
         stop_selects=stop_address_selects,
-        next_function=route_output,
+        next_function=select_profile,
         interaction_obj=obj
     )
 
@@ -145,34 +148,99 @@ async def select_stops_addresses(interaction: discord.Interaction, obj: RouteInt
             )
     )
 
+async def select_profile(interaction: discord.Interaction, obj: RouteInteraction):
+    select = ui.ProfileSelect()
+
+    button = ui.ProfileSelectButton(
+        custom_id='profile_select',
+        label='Submit',
+        select=select,
+        next_function=route_output,
+        interaction_obj=obj
+    )
+
+    await interaction.response.send_message(
+        content='Awesome! Lastly choose the option that describes your bycicle best.',
+        view=ui.ProfileSelectView(
+            select=select,
+            button=button
+        )
+    )
+
 async def route_output(interaction: discord.Interaction, obj: RouteInteraction):
     # The map generation could take more than 3 secconds (which invalidates the discord token for this interaction)
     # A first response is sent to prevent this
     await interaction.response.send_message("Please wait... Generating the map.")
 
     # Collect route points
-    route_points = [obj.start_address.coordinates]
+    route_points = [obj.start_address]
     if obj.stops_address != None:
         for stop_address in obj.stops_address:
-            route_points.append(stop_address.coordinates)
-    route_points.append(obj.end_address.coordinates)
+            route_points.append(stop_address)
+    route_points.append(obj.end_address)
 
     # Create route
-    route = Route(route_points=route_points)
+    route = Route(route_points=route_points, profile=obj.cycling_profile)
 
     # Prepare output
     overview_embed = discord.Embed(
         title='Your route',
-        description=f'Here is the route. Open the HTML file in your browser to see the route.'
+        description=f'Here is the route. Open the HTML file in your browser to see the route.',
+    )
+    overview_embed.insert_field_at(
+        index=0,
+        name='Start address',
+        value=f'{route.route_points[0].label}\n({route.route_points[0].coordinates.latitude}, {route.route_points[0].coordinates.longitude})',
+        inline=False
+    )
+    overview_embed.insert_field_at(
+        index=1,
+        name='End address',
+        value=f'{route.route_points[-1].label}\n({route.route_points[-1].coordinates.latitude}, {route.route_points[-1].coordinates.longitude})',
+        inline=False
     )
     overview_embed.set_image(url='attachment://map.png')
     overview_embed.set_footer(text=f'The interactive map generation will only be available the first 15 minutes and 15 minutes after the first generation.')
 
     details_embed = discord.Embed(
         title='Detailed info',
-        description='This is an overview of the route information (TBD).'
-        # Total length, total duration, number of sections, Addresses
+        description='This is an overview of the route information.'
     )
+    details_embed.insert_field_at(
+        index=0,
+        name='Segments',
+        value=f'{len(route.segments)}',
+        inline=True
+    )
+    details_embed.insert_field_at(
+        index=1,
+        name='Total distance',
+        value=f'{round(route.distance)} m',
+        inline=True
+    )
+    details_embed.insert_field_at(
+        index=2,
+        name='Total duration',
+        value=f'{floor(route.duration/60/60)}:{floor(route.duration/60%60)} h',
+        inline=True
+    )
+    details_embed.insert_field_at(
+        index=3,
+        name='Total ascent',
+        value=f'{round(route.ascent)} m',
+        inline=True
+    )
+    details_embed.insert_field_at(
+        index=4,
+        name='Total descent',
+        value=f'{round(route.descent)} m',
+        inline=True
+    )
+
+    # Wenn mehr als 1 Segment:
+    #   in detailed info die Stopp-Addressen anzeigen
+    #   einen neuen Embed für jeden segment (Addresse von wo bis wo und die distanz und dauer)
+    
 
     await interaction.edit_original_response(
         content=None,

@@ -1,5 +1,6 @@
 from config import ORS_KEY
 from typing import List
+from enum import Enum
 
 import io
 import openrouteservice
@@ -11,6 +12,30 @@ class Coordinates:
         self.latitude = latitude
         self.longitude = longitude
         self.elevation = elevation
+
+
+class Address:
+    def __init__(self, id: str, label: str, coordinates: Coordinates):
+        self.id = id
+        self.label = label
+        self.coordinates = coordinates
+
+
+    def get_addres_list_from_str(address: str):
+        client = openrouteservice.Client(key=ORS_KEY)
+        json_data = client.pelias_search(text=address)
+    
+        address_list: List[Address] = []
+    
+        for feature in json_data['features']:
+            address = Address(
+                id = feature['properties']['id'],
+                label = feature['properties']['label'],
+                coordinates = Coordinates(feature['geometry']['coordinates'][1], feature['geometry']['coordinates'][0])
+            )
+            address_list.append(address)
+    
+        return address_list
 
 
 class RouteStep:
@@ -31,15 +56,15 @@ class RouteSegment:
 
 
 class Route:
-    def __init__(self, route_points: List[Coordinates]):
+    def __init__(self, route_points: List[Address], profile: str):
         self.ors_client = openrouteservice.Client(key=ORS_KEY)
         self.route_points = route_points
 
         # API call
         self.geojson = self.ors_client.directions(
-            coordinates=[(coords.longitude, coords.latitude) for coords in self.route_points],
+            coordinates=[(address.coordinates.longitude, address.coordinates.latitude) for address in self.route_points],
             elevation=True,
-            profile='cycling-regular',
+            profile=profile,
             format='geojson'
         )
 
@@ -84,9 +109,9 @@ class Route:
         waypoint_icon = folium.Icon(color='blue', icon='star')
         end_icon = folium.Icon(color='red', icon='glyphicon-flag')
 
-        folium.Marker([self.route_points[0].latitude, self.route_points[0].longitude], popup='Start', icon=start_icon).add_to(map)
-        folium.Marker([self.route_points[1].latitude, self.route_points[1].longitude], popup='point', icon=waypoint_icon).add_to(map)
-        folium.Marker([self.route_points[-1].latitude, self.route_points[-1].longitude], popup='End', icon=end_icon).add_to(map)
+        folium.Marker([self.route_points[0].coordinates.latitude, self.route_points[0].coordinates.longitude], popup='Start', icon=start_icon).add_to(map)
+        folium.Marker([self.route_points[1].coordinates.latitude, self.route_points[1].coordinates.longitude], popup='point', icon=waypoint_icon).add_to(map)
+        folium.Marker([self.route_points[-1].coordinates.latitude, self.route_points[-1].coordinates.longitude], popup='End', icon=end_icon).add_to(map)
 
         html_map = map.get_root().render()
         return io.BytesIO(html_map.encode())
@@ -101,33 +126,9 @@ class Route:
         waypoint_icon = folium.Icon(color='blue', icon='star')
         end_icon = folium.Icon(color='red', icon='glyphicon-flag')
 
-        folium.Marker([self.route_points[0].latitude, self.route_points[0].longitude], popup='Start', icon=start_icon).add_to(map)
-        folium.Marker([self.route_points[1].latitude, self.route_points[1].longitude], popup='point', icon=waypoint_icon).add_to(map)
-        folium.Marker([self.route_points[-1].latitude, self.route_points[-1].longitude], popup='End', icon=end_icon).add_to(map)
+        folium.Marker([self.route_points[0].coordinates.latitude, self.route_points[0].coordinates.longitude], popup='Start', icon=start_icon).add_to(map)
+        folium.Marker([self.route_points[1].coordinates.latitude, self.route_points[1].coordinates.longitude], popup='point', icon=waypoint_icon).add_to(map)
+        folium.Marker([self.route_points[-1].coordinates.latitude, self.route_points[-1].coordinates.longitude], popup='End', icon=end_icon).add_to(map)
 
         img_data = map._to_png(1)
         return io.BytesIO(img_data)
-
-
-class Address:
-    def __init__(self, id: str, label: str, coordinates: Coordinates):
-        self.id = id
-        self.label = label
-        self.coordinates = coordinates
-
-
-    def get_addres_list_from_str(address: str):
-        client = openrouteservice.Client(key=ORS_KEY)
-        json_data = client.pelias_search(text=address)
-    
-        address_list: List[Address] = []
-    
-        for feature in json_data['features']:
-            address = Address(
-                id = feature['properties']['id'],
-                label = feature['properties']['label'],
-                coordinates = Coordinates(feature['geometry']['coordinates'][1], feature['geometry']['coordinates'][0])
-            )
-            address_list.append(address)
-    
-        return address_list
