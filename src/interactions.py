@@ -186,6 +186,7 @@ async def route_output(interaction: discord.Interaction, obj: RouteInteraction):
     overview_embed = discord.Embed(
         title='Your route',
         description=f'Here is the route. Open the HTML file in your browser to see the route.',
+        color=discord.Color.green()
     )
     overview_embed.insert_field_at(
         index=0,
@@ -204,7 +205,8 @@ async def route_output(interaction: discord.Interaction, obj: RouteInteraction):
 
     details_embed = discord.Embed(
         title='Detailed info',
-        description='This is an overview of the route information.'
+        description='This is an overview of the route information.',
+        color=discord.Color.blue()
     )
     details_embed.insert_field_at(
         index=0,
@@ -237,14 +239,53 @@ async def route_output(interaction: discord.Interaction, obj: RouteInteraction):
         inline=True
     )
 
-    # Wenn mehr als 1 Segment:
-    #   in detailed info die Stopp-Addressen anzeigen
-    #   einen neuen Embed für jeden segment (Addresse von wo bis wo und die distanz und dauer)
-    
+    all_embeds = [overview_embed, details_embed]
+
+    if len(route.segments) > 1:
+        segment_embeds = []
+        segment_counter = 0
+
+        for segment in route.segments:
+            segment_counter += 1
+
+            segment_embed = discord.Embed(
+                title=f'Segment {segment_counter}',
+                color=discord.Color.gold()
+            )
+
+            segment_embed.insert_field_at(
+                index=0,
+                name='Total distance',
+                value=f'{round(segment.distance)} m',
+                inline=True
+            )
+
+            segment_embed.insert_field_at(
+                index=1,
+                name='Total duration',
+                value=f'{floor(segment.duration/60/60)}:{floor(segment.duration/60%60)} h',
+                inline=True
+            )
+            segment_embed.insert_field_at(
+                index=2,
+                name='Total ascent',
+                value=f'{round(segment.ascent)} m',
+                inline=True
+            )
+            segment_embed.insert_field_at(
+                index=3,
+                name='Total descent',
+                value=f'{round(segment.descent)} m',
+                inline=True
+            )
+
+            segment_embeds.append(segment_embed)
+            
+        all_embeds += segment_embeds
 
     await interaction.edit_original_response(
         content=None,
-        embeds=[overview_embed, details_embed],
+        embeds=all_embeds,
         attachments=[discord.File(route.get_png_map(), filename='map.png')],
         view=ui.RouteButtonsView(route)
     )
