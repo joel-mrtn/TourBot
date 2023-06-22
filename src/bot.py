@@ -2,7 +2,7 @@ from config import DC_TOKEN, DC_GUILD
 from discord import app_commands
 
 import discord
-import interactions
+import commands.interactions as interactions
 
 
 class BotClient(discord.Client):

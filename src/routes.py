@@ -1,6 +1,5 @@
 from config import ORS_KEY
 from typing import List
-from enum import Enum
 
 import io
 import openrouteservice
