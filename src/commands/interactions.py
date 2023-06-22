@@ -8,18 +8,22 @@ import ui
 class RouteInteraction:
     start_address_input: str
     end_address_input: str
-    stops_address_input: List[str] = []
+    stops_address_input: List[str]
 
     start_address: Address
     end_address: Address
-    stops_address: List[Address] = []
+    stops_address: List[Address]
 
     cycling_profile: str
+
+    def __init__(self):
+        self.stops_address_input = []
+        self.stops_address = []
 
 # ------------------------------------------------------------------------------------------------
 
 async def ready(interaction: discord.Interaction):
-    obj = RouteInteraction
+    obj = RouteInteraction()
 
     await interaction.response.send_message(
         content=f'Hey {interaction.user.mention}! Welcome to the TourBot route generation. This tool will help you to create the route of your choice based on your prefered stops. Press the button below when you feel ready and enjoy!',
