@@ -108,10 +108,19 @@ class Route:
         waypoint_icon = folium.Icon(color='blue', icon='star')
         end_icon = folium.Icon(color='red', icon='glyphicon-flag')
 
-        folium.Marker([self.route_points[0].coordinates.latitude, self.route_points[0].coordinates.longitude], popup='Start', icon=start_icon).add_to(map)
-        folium.Marker([self.route_points[1].coordinates.latitude, self.route_points[1].coordinates.longitude], popup='point', icon=waypoint_icon).add_to(map)
-        folium.Marker([self.route_points[-1].coordinates.latitude, self.route_points[-1].coordinates.longitude], popup='End', icon=end_icon).add_to(map)
+        folium.Marker([self.route_points[0].coordinates.latitude, self.route_points[0].coordinates.longitude], popup='Start', icon=(folium.Icon(color='green', icon='glyphicon-home'))).add_to(map)
+        folium.Marker([self.route_points[1].coordinates.latitude, self.route_points[1].coordinates.longitude], popup='point', icon=(folium.Icon(color='blue', icon='star'))).add_to(map)
 
+        try:
+            folium.Marker([self.route_points[2].coordinates.latitude, self.route_points[2].coordinates.longitude], popup='point', icon=(folium.Icon(color='blue', icon='star'))).add_to(map)
+            folium.Marker([self.route_points[3].coordinates.latitude, self.route_points[3].coordinates.longitude], popup='point', icon=(folium.Icon(color='blue', icon='star'))).add_to(map)
+        except:
+            # If an exception ocurrs, it means that there are no stops in between.
+            # There is nothing to do.
+            ...
+
+        folium.Marker([self.route_points[len(self.segments)].coordinates.latitude, self.route_points[len(self.segments)].coordinates.longitude], popup='End', icon=(folium.Icon(color='red', icon='glyphicon-flag'))).add_to(map)
+        
         html_map = map.get_root().render()
         return io.BytesIO(html_map.encode())
 
@@ -121,13 +130,18 @@ class Route:
         route_layer.add_to(map)
         map.fit_bounds(route_layer.get_bounds())
 
-        start_icon = folium.Icon(color='green', icon='glyphicon-home')
-        waypoint_icon = folium.Icon(color='blue', icon='star')
-        end_icon = folium.Icon(color='red', icon='glyphicon-flag')
+        folium.Marker([self.route_points[0].coordinates.latitude, self.route_points[0].coordinates.longitude], popup='Start', icon=(folium.Icon(color='green', icon='glyphicon-home'))).add_to(map)
+        folium.Marker([self.route_points[1].coordinates.latitude, self.route_points[1].coordinates.longitude], popup='point', icon=(folium.Icon(color='blue', icon='star'))).add_to(map)
 
-        folium.Marker([self.route_points[0].coordinates.latitude, self.route_points[0].coordinates.longitude], popup='Start', icon=start_icon).add_to(map)
-        folium.Marker([self.route_points[1].coordinates.latitude, self.route_points[1].coordinates.longitude], popup='point', icon=waypoint_icon).add_to(map)
-        folium.Marker([self.route_points[-1].coordinates.latitude, self.route_points[-1].coordinates.longitude], popup='End', icon=end_icon).add_to(map)
+        try:
+            folium.Marker([self.route_points[2].coordinates.latitude, self.route_points[2].coordinates.longitude], popup='point', icon=(folium.Icon(color='blue', icon='star'))).add_to(map)
+            folium.Marker([self.route_points[3].coordinates.latitude, self.route_points[3].coordinates.longitude], popup='point', icon=(folium.Icon(color='blue', icon='star'))).add_to(map)
+        except:
+            # If an exception ocurrs, it means that there are no stops in between.
+            # There is nothing to do.
+            ...
+
+        folium.Marker([self.route_points[len(self.segments)].coordinates.latitude, self.route_points[len(self.segments)].coordinates.longitude], popup='End', icon=(folium.Icon(color='red', icon='glyphicon-flag'))).add_to(map)
 
         img_data = map._to_png(1)
         return io.BytesIO(img_data)
