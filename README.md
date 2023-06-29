@@ -13,4 +13,4 @@ folium
 selenium
 ```
 
-For `selenium` to work, Firefox should be installed on the system.
+For `selenium` to work, Firefox should be installed on the system. An `.env` file with the global variables defined in the `config.py` file is required as well. Make sure to add the necessary keys for Openrouteservice an Discord.
